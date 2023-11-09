@@ -1,7 +1,8 @@
 import tkinter as tk
 from leftcolumn.leftcolumn import leftColumn
+from midcolumns.midcolumn import midColumn
 from rightcolumn.rightcolumn import rightColumn
-
+from utils import Data
 # Function to update the display
 def update_display(value):
     current_text = display.get()
@@ -26,11 +27,12 @@ main_frame.pack(fill=tk.BOTH, expand=True)
 # Create the left main column (column 0) with a fixed width of 600 pixels
 main_frame.grid_columnconfigure(0, minsize=600)
 
+data = Data()
 #left column
-leftColumn(tk, main_frame)
+leftColumn(tk, main_frame, data)
 
 #right column
-rightColumn(tk, main_frame)
+rightColumn(tk, main_frame, data)
 
 
 # Start the main loop

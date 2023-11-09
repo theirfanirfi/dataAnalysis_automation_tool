@@ -624,3 +624,4 @@ for flux in delta_flux:
     if flux < 10:
             A_min[counter] = batch_volume/(average_flux[counter]*process_time)
     counter += 1
+"""

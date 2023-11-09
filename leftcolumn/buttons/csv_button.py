@@ -1,18 +1,22 @@
 from tkinter import filedialog
 import pandas as pd
+from utils import *
 
-def csvButton(i=1, label="Upload CSV Files", tk=None, left_column=None):
+def csvButton(i=1, label="Upload CSV Files", tk=None,
+    left_column=None, data=None):
+    data.set_results([1,2,3])
+    # print(results_list)
     button_frame = tk.Frame(left_column, bg="purple", bd=1, relief=tk.SOLID)
     button_frame.grid(row=i, column=0, sticky='w', padx=5, pady=5)
     button = tk.Button(button_frame,
     text=label,
     padx=20, pady=20, wraplength=75,
-    command=selectCSVFile)  # Make buttons wrap text
+    command=lambda tk=tk: selectCSVFile(tk, data))  # Make buttons wrap text
     button.grid(row=0, column=0, sticky='w')
 
 
 
-def selectCSVFile():
+def selectCSVFile(tk, data):
     # root = tk.Tk()
     # root.withdraw()  # Hide the main window
     file_paths = filedialog.askopenfilenames(
@@ -25,9 +29,9 @@ def selectCSVFile():
         return None
 
     print(file_paths)
-    read_files(file_paths)
+    read_files(file_paths, tk, data)
 
-def read_files(filePaths):
+def read_files(filePaths, tk, data):
     # dictionary for run information
     filter_runs = {}
     # list including all run data
@@ -62,3 +66,5 @@ def read_files(filePaths):
         counter += 1
 
     print(results_list)
+    data.set_results(results_list)
+    data.set_filter_runs(filter_runs)
