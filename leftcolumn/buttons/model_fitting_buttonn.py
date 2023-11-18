@@ -5,16 +5,6 @@ from models.models import *
 from scipy.optimize import *
 import matplotlib.pyplot as plt
 
-import numpy as np
-from fpdf import FPDF
-from datetime import date
-from datetime import datetime
-from pandas.plotting import table
-from scipy.integrate import quad
-from sympy.solvers.diophantine.diophantine import diop_solve
-from sympy import *
-import os
-
 checked_data = []
 
 def model_fitting_button(i=4, label="Fit Models", 
@@ -30,87 +20,13 @@ def model_fitting_button(i=4, label="Fit Models",
     button.grid(row=0, column=0, sticky='w')
 
 def fit_models(data):
-    data.update_stat_items("Models are being fitted......")
     results_list = data.get_results_lists()
     filter_runs = data.get_filter_runs()
     smoothing_factor = data.get_smoothing_factor()
     membrane_area = data.get_membrane_area()
+    data.enable_last_batch_of_images()
+    print('enabled')
 
-
-    """
-    Modeling Section:
-        definition of various filtration models and inclusion into script:
-        - Standard 
-        - Cake filtration
-        - Intermediate clogging
-        - Complete clogging
-        - Combined Intermediate-Adsorption
-    """
-
-    # Function definition of the filtration model
-    # First model is based on the throughput V
-    # Second model is based on the Flux J -> appendix _flux
-
-    def vmax_standard(time,flux_0,parameter_ks):
-        return (1/(flux_0*time)+(parameter_ks/2))**(-1)
-
-    def vmax_standard_flux(time, flux_0, parameter_ks):
-        return -(1/(flux_0*time)+(parameter_ks/2))**(-2)*(1/(flux_0*time))**2
-
-    def cake_filtration(time,flux_0,parameter_kc):
-        return (1/(parameter_kc*flux_0))*((1+2*parameter_kc*(flux_0)**2*time)**0.5-1)
-
-    def cake_filtration_flux(time, flux_0, parameter_kc):
-        return (1/(1+2*parameter_kc*flux_0**2*time)**0.5)*flux_0
-
-    def intermediate_filtration(time,flux_0,parameter_ki):
-        return (1/parameter_ki)*np.log10(1+parameter_ki*flux_0*time)
-
-    def intermediate_filtration_flux(volume,flux_0,parameter_ki):
-        return np.exp(-parameter_ki*volume)*flux_0
-
-    def complete_clogging(time,flux_0,parameter_kb):
-        return (flux_0/parameter_kb)*(1-np.exp(-parameter_kb*time))
-
-    def complete_clogging_flux(time,flux_0,parameter_kb):
-        return (np.exp(-parameter_kb*time)*flux_0)
-
-    def combined_intermediate(time, flux_0,parameter_ki, parameter_ka):
-        return (1/parameter_ki)*np.log10(parameter_ki*flux_0/(5*parameter_ka)*(1-(1-parameter_ka*time)**5)+1)
-
-    def combined_intermediate_flux(VolumeTime, flux_0,parameter_ki, parameter_ka):
-        volume, time = VolumeTime
-        return ((np.exp(-parameter_ki*volume))*((1-parameter_ka*time)**4))*flux_0
-        
-    # Derivative functions of the filtration models
-    def vmax_standard_derivative(time, flux_0, parameter1):
-        return 1/(flux_0*time**2*(parameter1/2 + 1/(flux_0*time))**2)
-
-    def cake_filtration_derivative(time, flux_0, parameter1):
-        return 1.0*flux_0/(2*flux_0**2*parameter1*time + 1)**0.5
-
-    def intermediate_filtration_derivative(time, flux_0, parameter1):
-        return flux_0/(flux_0*parameter1*time + 1)
-
-    def complete_clogging_derivative(time, flux_0, parameter1):
-        return flux_0*np.exp(-parameter1*time)
-
-    def combined_derivative(time, flux_0, parameter1, parameter2):
-        return flux_0*(-parameter2*time + 1)**4/(flux_0*parameter1*(1 - (-parameter2*time + 1)**5)/(5*parameter2) + 1)
-
-    def combined_intermediate_flux2(VolumeTime, flux_0,parameter_ki, parameter_ka):
-        volume, time = VolumeTime
-        x1 = ((np.exp(-parameter_ki*volume))*((1-parameter_ka*time)**4))*flux_0
-        x2 = ((np.exp(-parameter_ki*time))*((1-parameter_ka*volume)**4))*flux_0
-        x = (x1,x2)
-        return x
-
-    # Set values of time range for fitting (in min)
-    fit_time_range = np.linspace(0,1000,100)
-    # Set values of load range for fitting (in mL)
-    fit_load_range = np.linspace(0,2000,100)
-    
-    plt_label = ""
 
     # Model fitting for all models in loading mode
     models_list =[vmax_standard, cake_filtration, intermediate_filtration, complete_clogging, combined_intermediate]
@@ -161,7 +77,7 @@ def fit_models(data):
             parameter_matrix[models_list[counter].__name__] = pd.DataFrame(parameter1)    
             r_squared[models_list[counter].__name__ ] = pd.DataFrame(r2)  
         if models_list[counter].__name__ == 'combined_intermediate':
-            parameter_matrix[f'{models_list[counter].__name__}2'] = pd.DataFrame(parameter2)
+           parameter_matrix[f'{models_list[counter].__name__}2'] = pd.DataFrame(parameter2)
         fig = plt.figure()
         counter2 = 0
         for results in results_list:
@@ -174,10 +90,9 @@ def fit_models(data):
         plt.xlim(0) 
         plt.ylim(0)
         plt.legend()
-        plt.savefig(os.path.join(data.get_project_title(), "plot_label"))
         # plt.show()
+        plt.savefig('load_mode.png')
         counter += 1
-
 
 
     # Model fitting for all models in flux mode
@@ -194,7 +109,7 @@ def fit_models(data):
         for results in results_list:
             if models_list_flux[counter].__name__ == 'combined_intermediate_flux':
                 popt, cir = curve_fit(models_list_flux[counter], (results['vol (mL)'],results['time (min)']), results['flux (LMH)'], 
-                                    maxfev = 10000, p0=(results['flux (LMH)'].iloc[0],0.001,0.0001),bounds=([0,0.00001,0.000001],[100000,0.1,0.001]))
+                                      maxfev = 10000, p0=(results['flux (LMH)'].iloc[0],0.001,0.0001),bounds=([0,0.00001,0.000001],[100000,0.1,0.001]))
                 a, b, c = popt
                 flux_fit_series = models_list_flux[counter]((fit_load_range, fit_time_range), a, b,c)
                 flux_fit_df = pd.DataFrame(flux_fit_series, columns = ['fit flux (LMH)'])
@@ -266,28 +181,25 @@ def fit_models(data):
         if models_list[counter].__name__ == 'combined_intermediate':
             parameter_matrix_flux[f'{models_list[counter].__name__}2'] = pd.DataFrame(parameter2)
         if models_list_flux[counter].__name__ == 'vmax_standard_flux':
-            # plt.xlabel('Load (L/m²)')
-            plt_label = 'Load (L/m²)'
+            plt.xlabel('Load (L/m²)')
         elif models_list_flux[counter].__name__ == 'intermediate_filtration_flux':
-            # plt.xlabel('Volume (mL)')
-            plt_label = 'Volume (mL)'
+            plt.xlabel('Volume (mL)')
         else:
-            # plt.xlabel('Time (min)')
-            plt_label = 'Time (min)'
+            plt.xlabel('Time (min)')
         plt.ylabel('Flux (LMH)')
-        plt.xlabel(plt_label)
         plt.title(models_list_flux[counter].__name__)
         plt.xlim(0) 
         plt.ylim(0)
         plt.legend()
-        plt_label = "flux_mode_"+plt_label.replace(" ","").replace("/","")
-        plt.savefig(os.path.join(data.get_project_title(), plt_label))
         # plt.show()
+        plt.savefig('flux_mode.png')
         counter += 1
 
-                                    
-    
-                
+                                 
+
+
+
+
 
     #Calculation of Vmax through the derivative functions of the loading functions
     models_list_derivative = [vmax_standard_derivative, cake_filtration_derivative, intermediate_filtration_derivative, complete_clogging_derivative, combined_derivative]
@@ -308,11 +220,11 @@ def fit_models(data):
             counter2 += 1        
         if counter == 0:
             Vmax = pd.DataFrame(Vmax_single, columns=[models_list[counter].__name__])
+            print(Vmax)
         else:
             Vmax[models_list[counter].__name__] = pd.DataFrame(Vmax_single)
         counter += 1
-        
-        
+
     #Calculation of time or volume at flux=0 through the flux functions
     models_list_flux =[vmax_standard_flux, cake_filtration_flux, intermediate_filtration_flux, complete_clogging_flux, combined_intermediate_flux2]
     counter = 0
@@ -335,7 +247,6 @@ def fit_models(data):
             Vmax_flux[models_list[counter].__name__] = pd.DataFrame(Vmax_single)
         counter += 1
 
-    
 
     # Integration of volume over time for throughput calculation
     models_list_integral = [cake_filtration, complete_clogging, combined_intermediate]
@@ -344,7 +255,10 @@ def fit_models(data):
         counter = 0
         integral =[]
         while counter < len(Vmax_flux):
-            complete_integral = quad(complete_clogging_flux, 0, Vmax_flux[model.__name__][counter], args= (flux_initial_flux[model.__name__][counter],parameter_matrix_flux[model.__name__][counter]))
+            complete_integral = quad(complete_clogging_flux, 0, 
+                Vmax_flux[model.__name__][counter], 
+                args= (flux_initial_flux[model.__name__][counter],
+                    parameter_matrix_flux[model.__name__][counter]))
             integral.append(complete_integral)
             counter += 1
         if counter2 == 0:
@@ -354,136 +268,8 @@ def fit_models(data):
             Integrals_Models[model.__name__] = Integrals_Models_intermediate[model.__name__]
             Integrals_Models[f'{model.__name__} error'] = Integrals_Models_intermediate[f'{model.__name__} error']
         counter2 += 1
-    
-
-    
-    def vmax_standard_flux2(volume, parameter_ks):
-        return (1-((volume*parameter_ks)/2))**2
-        
-    def cake_filtration_flux2(time, flux_0, parameter_kc):
-        return (1/(1+2*parameter_kc*flux_0**2*time)**0.5)
-
-    def intermediate_filtration_flux2(volume,parameter_ki):
-        return np.exp(-parameter_ki*volume)
-
-    def complete_clogging_flux2(time,parameter_kb):
-        return np.exp(-parameter_kb*time)
-
-    def combined_intermediate_flux2(VolumeTime,parameter_ki, parameter_ka):
-        volume, time = VolumeTime
-        return ((np.exp(-parameter_ki*volume))*((1-parameter_ka*time)**4))
 
 
-    # Model fitting for all models in flux mode for J/J0
-    models_list_flux =[vmax_standard_flux2, cake_filtration_flux2, intermediate_filtration_flux2, complete_clogging_flux2, combined_intermediate_flux2]
-    counter= 0
-    while counter < len(models_list_flux):
-        flux_fit = []
-        r2_flux_J = []
-        parameter_J = []
-        parameter1 = []
-        parameter2 = []
-        flux_fit_matrix_J=[]
-        for results in results_list:
-            if models_list_flux[counter].__name__ == 'combined_intermediate_flux2':
-                popt, cir = curve_fit(models_list_flux[counter], (results['vol (mL)'],results['time (min)']), results['flux J/J0 (-)'], 
-                                    maxfev = 10000000, p0=(0.01,0.0001),bounds=([0.001,0.0000001],[1,0.001]))
-                b, c = popt
-                flux_fit_series = models_list_flux[counter]((fit_load_range, fit_time_range), b,c)
-                flux_fit_df = pd.DataFrame(flux_fit_series, columns = [f'fit flux J/J0 (-)'])
-                flux_fit_df['Load (L/m²)'] = fit_load_range
-                flux_fit.append(flux_fit_df)
-                corr_matrix = np.corrcoef(results['flux J/J0 (-)'],models_list_flux[counter]((results['vol (mL)'],results['time (min)']), b,c))
-                corr = corr_matrix[0,1]**2
-                r2_flux.append(corr)
-                parameter1.append(b)
-                parameter2.append(c)
-            elif models_list_flux[counter].__name__ == 'vmax_standard_flux2':
-                popt, cir = curve_fit(models_list_flux[counter], results['load (L/m²)'], results['flux J/J0 (-)'], maxfev=100000, p0=(0.00001), bounds=(0.000001,0.01))
-                b = popt
-                flux_fit_series = models_list_flux[counter](fit_load_range, b)
-                flux_fit_df = pd.DataFrame(flux_fit_series, columns = [f'fit flux J/J0 (-)'])
-                flux_fit_df['Load (L/m²)'] = fit_load_range
-                flux_fit.append(flux_fit_df)
-                corr_matrix = np.corrcoef(results['flux J/J0 (-)'],models_list_flux[counter](results['load (L/m²)'], b))
-                corr = corr_matrix[0,1]**2
-                r2_flux.append(corr)
-                parameter1.append(b) 
-            elif  models_list_flux[counter].__name__ == 'intermediate_filtration_flux2':
-                popt, cir = curve_fit(models_list_flux[counter], results['vol (mL)'], results['flux J/J0 (-)'], maxfev = 100000, p0=(1))
-                b = popt
-                flux_fit_series = models_list_flux[counter](fit_load_range, b)
-                flux_fit_df = pd.DataFrame(flux_fit_series, columns = [f'fit flux J/J0 (-)'])
-                flux_fit_df['Load (L/m²)'] = fit_load_range
-                flux_fit.append(flux_fit_df)
-                corr_matrix = np.corrcoef(results['flux J/J0 (-)'],models_list_flux[counter](results['vol (mL)'], b))
-                corr = corr_matrix[0,1]**2
-                r2_flux.append(corr)
-                parameter1.append(b)                   
-            elif models_list_flux[counter].__name__ == 'cake_filtration_flux2':
-                popt, cir = curve_fit(models_list_flux[counter], results['time (min)'], results['flux J/J0 (-)'], maxfev = 10000, p0=(results['flux (LMM)'].iloc[0],0.001))
-                a, b = popt
-                flux_fit_series = models_list_flux[counter](fit_time_range, a, b)
-                flux_fit_df = pd.DataFrame(flux_fit_series, columns = [f'fit flux J/J0 (-)'])
-                flux_fit_df['Time (min)'] = fit_time_range
-                flux_fit.append(flux_fit_df)
-                corr_matrix = np.corrcoef(results['flux J/J0 (-)'],models_list_flux[counter](results['time (min)'], a, b))
-                corr = corr_matrix[0,1]**2
-                r2_flux.append(corr)
-                flux_0.append(a)
-                parameter1.append(b)       
-            elif models_list_flux[counter].__name__ == 'complete_clogging_flux2':
-                popt, cir = curve_fit(models_list_flux[counter], results['time (min)'], results['flux J/J0 (-)'], maxfev = 10000, p0=(1))
-                b = popt
-                flux_fit_series = models_list_flux[counter](fit_time_range, b)
-                flux_fit_df = pd.DataFrame(flux_fit_series, columns = [f'fit flux J/J0 (-)'])
-                flux_fit_df['Time (min)'] = fit_time_range
-                flux_fit.append(flux_fit_df)
-                corr_matrix = np.corrcoef(results['flux J/J0 (-)'],models_list_flux[counter](results['time (min)'], b))
-                corr = corr_matrix[0,1]**2
-                r2_flux.append(corr)
-                parameter1.append(b)
+  
 
-        if counter == 0:
-        # flux_fit_matrix_J.append(flux_fit)
-            parameter_matrix_flux_J = pd.DataFrame(parameter1, columns = [models_list[counter].__name__])
-            r_squared_flux_J = pd.DataFrame(r2_flux, columns = [models_list_flux[counter].__name__])  
-        else:
-        # flux_fit_matrix_J.append(flux_fit)
-            parameter_matrix_flux_J[models_list[counter].__name__] = pd.DataFrame(parameter1)    
-            r_squared_flux_J[models_list_flux[counter].__name__ ] = pd.DataFrame(r2_flux)  
-        fig = plt.figure()
-        counter2 = 0
-        plt_label = ""
-        for results in results_list:
-            plot_label = f'{filter_runs[counter2]["Run No."]} {filter_runs[counter2]["Stand ID"]}'
-            if models_list_flux[counter].__name__ == 'vmax_standard_flux2' or models_list_flux[counter].__name__ == 'intermediate_filtration_flux2':
-                plt.plot(fit_load_range,flux_fit[counter2],label = plot_label)
-            else:
-                plt.plot(fit_time_range,flux_fit[counter2],label = plot_label)
-            counter2 += 1
-        if models_list[counter].__name__ == 'combined_intermediate':
-            parameter_matrix_flux_J[f'{models_list[counter].__name__}2'] = pd.DataFrame(parameter2)
-        if models_list_flux[counter].__name__ == 'vmax_standard_flux2':
-            plt_label = 'Load (L/m²)'
-            # plt.xlabel('Load (L/m²)')
-        elif models_list_flux[counter].__name__ == 'intermediate_filtration_flux2':
-            # plt.xlabel('Volume (mL)')
-            plt_label = 'Volume (mL)'
-        else:
-            # plt.xlabel('Time (min)')
-            plt_label = 'Time (min)'
-        plt.ylabel('J/J0 (-)')
-        plt.xlabel(plt_label)
-        plt.title(models_list_flux[counter].__name__)
-        plt.xlim(0) 
-        plt.ylim(0)
-        plt.legend()
-        # plt.show()
-        plt_label = "flux_mode_JJ0_"+plt_label.replace(" ","").replace("/","")
-        plt.savefig(os.path.join(data.get_project_title(), plt_label))
-        counter += 1
-
-    data.enable_last_batch_of_images()
-    print('enabled')
-    data.update_stat_items("Models fitted.\nPlease click in the model view section.")
+ 

@@ -30,6 +30,7 @@ def selectCSVFile(tk, data):
 
     print(file_paths)
     read_files(file_paths, tk, data)
+    data.update_stat_items(file_paths)
 
 def read_files(filePaths, tk, data):
     # dictionary for run information

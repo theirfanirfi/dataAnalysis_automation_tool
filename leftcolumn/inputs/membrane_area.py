@@ -6,6 +6,7 @@ def membrane_area(tk, sub_container, data):
 		print('working ', event)
 		print('smoothing_factor', data.get_smoothing_factor())
 		data.set_membrane_area(int(entry.get())/10000)
+		data.update_stat_items("Membrane area now is: " + str(int(entry.get())/10000))
 	
 	label_frame = tk.Frame(sub_container, 
     	bg="purple", 

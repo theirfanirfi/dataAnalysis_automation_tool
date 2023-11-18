@@ -10,7 +10,7 @@ results_list = [1]
 
 def leftColumn(tk, main_frame, data):
     left_column = tk.Frame(main_frame, bg="lightblue")
-    left_column.grid(row=0, column=0, rowspan=3, sticky='ns')  # Align to the left
+    left_column.grid(row=0, column=0, rowspan=3, sticky='wn')  # Align to the left
 
     #buttons
 
@@ -21,7 +21,7 @@ def leftColumn(tk, main_frame, data):
    
     # Create the sub-container in the left column
     sub_container = tk.Frame(left_column, bg="lightgreen")
-    sub_container.grid(row=5, column=0, sticky='ew')
+    sub_container.grid(row=5, column=0, columnspan=2, sticky='w')
 
     # Create the first sub-column in the sub-container
     smoothingFactor(tk, sub_container, data)
@@ -32,4 +32,6 @@ def leftColumn(tk, main_frame, data):
     for i, label in enumerate(text_labels):
         label_frame = tk.Frame(sub_container, bg="purple", bd=1, relief=tk.SOLID)
         label_frame.grid(row=i, column=2, padx=5, pady=5, sticky='w')
-        tk.Label(label_frame, text=label).grid(row=0, column=0, sticky='w')
+        tk.Label(label_frame, text=label).grid(row=5, column=1,  sticky='w')
+
+    data.setLeftColumn(left_column)

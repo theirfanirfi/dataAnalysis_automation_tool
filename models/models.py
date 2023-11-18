@@ -12,12 +12,33 @@ Modeling Section:
 # Function definition of the filtration model
 # First model is based on the throughput V
 # Second model is based on the Flux J -> appendix _flux
+statistics = ""
+max_model_Value = 0
+max_model_name = ""
 
 def vmax_standard(time,flux_0,parameter_ks):
-    return (1/(flux_0*time)+(parameter_ks/2))**(-1)
+    global statistics
+    global max_model_Value
+    global max_model_name
+    value = (1/(flux_0*time)+(parameter_ks/2))**(-1)
+    if value > max_model_Value:
+        max_model_Value = value
+        max_model_name = "VMAX Standard"
+
+    statistics += "\nVMA Standard: "+str(value)
+    return value
 
 def vmax_standard_flux(time, flux_0, parameter_ks):
-    return -(1/(flux_0*time)+(parameter_ks/2))**(-2)*(1/(flux_0*time))**2
+    global statistics
+    global max_model_Value
+    global max_model_name
+    value = -(1/(flux_0*time)+(parameter_ks/2))**(-2)*(1/(flux_0*time))**2
+    if value > max_model_Value:
+        max_model_Value = value
+        max_model_name = "VMAX Standard FLUX"
+
+    statistics += "\nVMAX Standard FLUX: " + str(value)
+    return value
 
 def cake_filtration(time,flux_0,parameter_kc):
     return (1/(parameter_kc*flux_0))*((1+2*parameter_kc*(flux_0)**2*time)**0.5-1)
@@ -90,3 +111,5 @@ def combined_intermediate_flux2(VolumeTime,parameter_ki, parameter_ka):
     volume, time = VolumeTime
     return ((np.exp(-parameter_ki*volume))*((1-parameter_ka*time)**4))
 
+# print(max_model_name, max_model_name)
+# print(statistics)

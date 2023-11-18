@@ -3,6 +3,7 @@ from leftcolumn.leftcolumn import leftColumn
 from midcolumns.midcolumn import midColumn
 from rightcolumn.rightcolumn import rightColumn
 from utils import Data
+
 # Function to update the display
 def update_display(value):
     current_text = display.get()
@@ -25,11 +26,14 @@ main_frame = tk.Frame(app, bg="white")  # Set the background color to white
 main_frame.pack(fill=tk.BOTH, expand=True)
 
 # Create the left main column (column 0) with a fixed width of 600 pixels
-main_frame.grid_columnconfigure(0, minsize=600)
+main_frame.grid_columnconfigure(0, minsize=300)
+# main_frame.grid_columnconfigure(1, minsize=400)
+main_frame.grid_columnconfigure(2, minsize=600)
 
-data = Data()
-#left column
+data = Data(main_frame)
+# left column
 leftColumn(tk, main_frame, data)
+# midColumn(tk, main_frame, data)
 
 #right column
 rightColumn(tk, main_frame, data)

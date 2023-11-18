@@ -22,6 +22,10 @@ def checkInputData(data):
     results_list = data.get_results_lists()
     smoothing_factor = data.get_smoothing_factor()
     membrane_area = data.get_membrane_area()
+    text_stats = "Checking data quality\n"
+    text_stats += "\nSmoothing factor: " + str(smoothing_factor)
+    text_stats += "\nMembrane area: " + str(membrane_area)
+    
     print(smoothing_factor, membrane_area)
     # return 
 
@@ -59,3 +63,6 @@ def checkInputData(data):
         results_list[i] = results
 
     data.set_results(results_list)
+    text_stats += "\n"
+    text_stats += str(results_list)
+    data.update_stat_items(text_stats)
