@@ -9,12 +9,11 @@ checked_data = []
 def plot_button(i=3, label="Plot Data", 
     tk=None, 
     left_column=None, data=None):
-    print('results_list ',data.get_results_lists())
     button_frame = tk.Frame(left_column, bg="purple", bd=1, relief=tk.SOLID)
     button_frame.grid(row=i, column=0, sticky='w', padx=5, pady=5)
     button = tk.Button(button_frame,
     text=label,
-    padx=20, pady=20, wraplength=75,
+    padx=20, pady=20, wraplength=200,
     command=lambda tk=tk: plot_data(data))  # Make buttons wrap text
     button.grid(row=0, column=0, sticky='w')
 

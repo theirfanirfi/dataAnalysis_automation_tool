@@ -10,7 +10,7 @@ def csvButton(i=1, label="Upload CSV Files", tk=None,
     button_frame.grid(row=i, column=0, sticky='w', padx=5, pady=5)
     button = tk.Button(button_frame,
     text=label,
-    padx=20, pady=20, wraplength=75,
+    padx=20, pady=20, wraplength=200,
     command=lambda tk=tk: selectCSVFile(tk, data))  # Make buttons wrap text
     button.grid(row=0, column=0, sticky='w')
 

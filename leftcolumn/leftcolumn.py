@@ -4,6 +4,7 @@ from leftcolumn.buttons.plot_button import plot_button
 from leftcolumn.buttons.model_fitting_button import model_fitting_button
 from leftcolumn.inputs.smoothing_factor import smoothingFactor
 from leftcolumn.inputs.membrane_area import membrane_area
+from leftcolumn.buttons.report_button import reportButton
 
 filter_runs = {}
 results_list = [1]
@@ -18,10 +19,11 @@ def leftColumn(tk, main_frame, data):
     checkButton(i=2, label="Check Input Data", tk=tk, left_column=left_column, data=data)
     plot_button(i=3, label="Plot Data", tk=tk, left_column=left_column, data=data)
     model_fitting_button(i=4, label="Fit Models", tk=tk, left_column=left_column, data=data)
-   
+    reportButton(i=5, label="Generate Report", tk=tk, left_column=left_column, data=data)
+
     # Create the sub-container in the left column
     sub_container = tk.Frame(left_column, bg="lightgreen")
-    sub_container.grid(row=5, column=0, columnspan=2, sticky='w')
+    sub_container.grid(row=6, column=0, columnspan=2, sticky='w')
 
     # Create the first sub-column in the sub-container
     smoothingFactor(tk, sub_container, data)

@@ -25,7 +25,7 @@ def model_fitting_button(i=4, label="Fit Models",
     button_frame.grid(row=i, column=0, sticky='w', padx=5, pady=5)
     button = tk.Button(button_frame,
     text=label,
-    padx=20, pady=20, wraplength=75,
+    padx=20, pady=20, wraplength=200,
     command=lambda tk=tk: fit_models(data))  # Make buttons wrap text
     button.grid(row=0, column=0, sticky='w')
 
@@ -35,6 +35,9 @@ def fit_models(data):
     filter_runs = data.get_filter_runs()
     smoothing_factor = data.get_smoothing_factor()
     membrane_area = data.get_membrane_area()
+    max_model_value = -1
+    max_model_name = ""
+    model_value_statistics = list()
 
 
     """
@@ -51,59 +54,73 @@ def fit_models(data):
     # First model is based on the throughput V
     # Second model is based on the Flux J -> appendix _flux
 
+    def find_max_model(value, name):
+        global max_model_Value
+        global max_model_name
+
+        # if value > max_model_Value:
+        #     max_model_Value = value
+        #     max_model_name = name
+
+        model_value_statistics.append({
+            "model_name": name,
+            "model_value": value,
+        })
+        return value
+
     def vmax_standard(time,flux_0,parameter_ks):
-        return (1/(flux_0*time)+(parameter_ks/2))**(-1)
+        return find_max_model((1/(flux_0*time)+(parameter_ks/2))**(-1),"vmax_standard")
 
     def vmax_standard_flux(time, flux_0, parameter_ks):
-        return -(1/(flux_0*time)+(parameter_ks/2))**(-2)*(1/(flux_0*time))**2
+        return find_max_model(-(1/(flux_0*time)+(parameter_ks/2))**(-2)*(1/(flux_0*time))**2,"vmax_standard_flux")
 
     def cake_filtration(time,flux_0,parameter_kc):
-        return (1/(parameter_kc*flux_0))*((1+2*parameter_kc*(flux_0)**2*time)**0.5-1)
+        return find_max_model((1/(parameter_kc*flux_0))*((1+2*parameter_kc*(flux_0)**2*time)**0.5-1),"cake_filtration")
 
     def cake_filtration_flux(time, flux_0, parameter_kc):
-        return (1/(1+2*parameter_kc*flux_0**2*time)**0.5)*flux_0
+        return find_max_model((1/(1+2*parameter_kc*flux_0**2*time)**0.5)*flux_0,"cake_filtration_flux")
 
     def intermediate_filtration(time,flux_0,parameter_ki):
-        return (1/parameter_ki)*np.log10(1+parameter_ki*flux_0*time)
+        return find_max_model((1/parameter_ki)*np.log10(1+parameter_ki*flux_0*time),"intermediate_filtration")
 
     def intermediate_filtration_flux(volume,flux_0,parameter_ki):
-        return np.exp(-parameter_ki*volume)*flux_0
+        return find_max_model(np.exp(-parameter_ki*volume)*flux_0,"intermediate_filtration_flux")
 
     def complete_clogging(time,flux_0,parameter_kb):
-        return (flux_0/parameter_kb)*(1-np.exp(-parameter_kb*time))
+        return find_max_model((flux_0/parameter_kb)*(1-np.exp(-parameter_kb*time)),"complete_clogging")
 
     def complete_clogging_flux(time,flux_0,parameter_kb):
-        return (np.exp(-parameter_kb*time)*flux_0)
+        return find_max_model((np.exp(-parameter_kb*time)*flux_0),"complete_clogging_flux")
 
     def combined_intermediate(time, flux_0,parameter_ki, parameter_ka):
-        return (1/parameter_ki)*np.log10(parameter_ki*flux_0/(5*parameter_ka)*(1-(1-parameter_ka*time)**5)+1)
+        return find_max_model((1/parameter_ki)*np.log10(parameter_ki*flux_0/(5*parameter_ka)*(1-(1-parameter_ka*time)**5)+1), "combined_intermediate")
 
     def combined_intermediate_flux(VolumeTime, flux_0,parameter_ki, parameter_ka):
         volume, time = VolumeTime
-        return ((np.exp(-parameter_ki*volume))*((1-parameter_ka*time)**4))*flux_0
+        return find_max_model(((np.exp(-parameter_ki*volume))*((1-parameter_ka*time)**4))*flux_0,"combined_intermediate_flux")
         
     # Derivative functions of the filtration models
     def vmax_standard_derivative(time, flux_0, parameter1):
-        return 1/(flux_0*time**2*(parameter1/2 + 1/(flux_0*time))**2)
+        return find_max_model(1/(flux_0*time**2*(parameter1/2 + 1/(flux_0*time))**2),"vmax_standard_derivative")
 
     def cake_filtration_derivative(time, flux_0, parameter1):
-        return 1.0*flux_0/(2*flux_0**2*parameter1*time + 1)**0.5
+        return find_max_model((1.0*flux_0/(2*flux_0**2*parameter1*time + 1)**0.5),"cake_filtration_derivative")
 
     def intermediate_filtration_derivative(time, flux_0, parameter1):
-        return flux_0/(flux_0*parameter1*time + 1)
+        return find_max_model(flux_0/(flux_0*parameter1*time + 1), "intermediate_filtration_derivative")
 
     def complete_clogging_derivative(time, flux_0, parameter1):
-        return flux_0*np.exp(-parameter1*time)
+        return find_max_model(flux_0*np.exp(-parameter1*time), "complete_clogging_derivative")
 
     def combined_derivative(time, flux_0, parameter1, parameter2):
-        return flux_0*(-parameter2*time + 1)**4/(flux_0*parameter1*(1 - (-parameter2*time + 1)**5)/(5*parameter2) + 1)
+        return find_max_model(flux_0*(-parameter2*time + 1)**4/(flux_0*parameter1*(1 - (-parameter2*time + 1)**5)/(5*parameter2) + 1),"combined_derivative")
 
     def combined_intermediate_flux2(VolumeTime, flux_0,parameter_ki, parameter_ka):
         volume, time = VolumeTime
         x1 = ((np.exp(-parameter_ki*volume))*((1-parameter_ka*time)**4))*flux_0
         x2 = ((np.exp(-parameter_ki*time))*((1-parameter_ka*volume)**4))*flux_0
         x = (x1,x2)
-        return x
+        return find_max_model(x, "combined_intermediate_flux2")
 
     # Set values of time range for fitting (in min)
     fit_time_range = np.linspace(0,1000,100)
@@ -486,4 +503,9 @@ def fit_models(data):
 
     data.enable_last_batch_of_images()
     print('enabled')
-    data.update_stat_items("Models fitted.\nPlease click in the model view section.")
+    data.update_stat_items("Models fitted.\nPlease click in the model view section.\nReport Generation Enabled.")
+    data.set_statistical_model_values(model_value_statistics)
+    data.update_stat_textarea_items(model_value_statistics)
+    data.enable_report_generation()
+    # print(model_value_statistics)
+    # print("max: ",max_model_name, max_model_name)

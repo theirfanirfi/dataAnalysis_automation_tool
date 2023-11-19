@@ -13,7 +13,7 @@ def checkButton(i=2, label="Check Input Data",
     button_frame.grid(row=i, column=0, sticky='w', padx=5, pady=5)
     button = tk.Button(button_frame,
     text=label,
-    padx=20, pady=20, wraplength=75,
+    padx=20, pady=20, wraplength=200,
     command=lambda tk=tk: checkInputData(data))  # Make buttons wrap text
     button.grid(row=0, column=0, sticky='w')
 
@@ -35,6 +35,7 @@ def checkInputData(data):
     for results in results_list:
         if len(results) < smoothing_factor*2:
             print('Please reduce smoothing factor. Data points not sufficient.')
+            text_stats += "Please reduce smoothing factor. Data points not sufficient."
             
     vol = results['vol (mL)']
     time = results['time (min)']

@@ -23,9 +23,29 @@ class Data:
         self.images_container = None
         self.current_image_index = 0
         self.image_label = None
+        self.statistics_textarea_item = None
+        self.generate_report = False
+        self.statistical_model_values = ""
+
+    def set_statistical_model_values(self, model_dictionary):
+        new_text = ""
+        for item in model_dictionary:
+            new_text += "\n"+item['model_name']
+            new_text += "\n"+str(item['model_value'])+"\n"
+
+        self.statistical_model_values = new_text
+
+    def get_statistical_model_values(self):
+        return self.statistical_model_values
+
+    def enable_report_generation(self):
+        self.generate_report = True
 
     def set_image_label(self, image_label):
         self.image_label = image_label
+
+    def set_statistics_textarea_item(self, item):
+        self.statistics_textarea_item = item
 
     def get_image_label(self):
         return self.image_label
@@ -118,3 +138,15 @@ class Data:
     def update_stat_items(self, new_text):
         self.stats_item.delete("1.0", "end")  # Clear the existing text
         self.stats_item.insert("1.0", new_text)  # Insert the new text
+
+    def update_stat_textarea_items(self, model_dictionary):
+        new_text = ""
+        print(model_dictionary[0])
+        for item in model_dictionary:
+            new_text += "\n"+item['model_name']
+            new_text += "\n"+str(item['model_value'])+"\n"
+
+        # self.set_statistical_model_values(new_text)
+
+        self.statistics_textarea_item.delete("1.0", "end")  # Clear the existing text
+        self.statistics_textarea_item.insert("1.0", new_text)  # Insert the new text
