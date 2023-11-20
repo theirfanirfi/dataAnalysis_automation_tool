@@ -17,17 +17,19 @@ def calculate():
     except Exception as e:
         display.set("Error")
 
-# Create the main application window
+# main application window
 app = tk.Tk()
 app.title("Data Analysis Tool")
 
-# Create the main frame
+# main frame
 main_frame = tk.Frame(app, bg="white")  # Set the background color to white
 main_frame.pack(fill=tk.BOTH, expand=True)
 
-# Create the left main column (column 0) with a fixed width of 600 pixels
+# the left main column (column 0) with a fixed width of 300 pixels
 main_frame.grid_columnconfigure(0, minsize=300)
 # main_frame.grid_columnconfigure(1, minsize=400)
+
+# the right main column (column 2) with a fixed width of 600 pixels
 main_frame.grid_columnconfigure(2, minsize=600)
 
 data = Data(main_frame)

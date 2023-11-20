@@ -1,3 +1,6 @@
+#the data class maintain state of the entire application
+#some of the GUI elements are stored in the state as well for event driven architecture
+#the elements are @leftcolumn, @rightcolumn, @headers, @statistical, and @plot areas
 class Data:
     def __init__(self,main_frame):
         self.results_lists = []

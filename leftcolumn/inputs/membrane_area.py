@@ -2,9 +2,9 @@ def membrane_area(tk, sub_container, data):
 	def on_text_change(event):
 		if event.keycode==855638143 and entry.get() == "":
 			return
-		print('input',entry.get())
-		print('working ', event)
-		print('smoothing_factor', data.get_smoothing_factor())
+		# print('input',entry.get())
+		# print('working ', event)
+		# print('smoothing_factor', data.get_smoothing_factor())
 		data.set_membrane_area(float(entry.get())/10000)
 		data.update_stat_items("Membrane area now is: " + str(int(entry.get())/10000))
 	
