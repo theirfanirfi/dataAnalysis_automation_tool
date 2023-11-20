@@ -501,11 +501,35 @@ def fit_models(data):
         plt.savefig(os.path.join(data.get_project_title(), plt_label))
         counter += 1
 
+    # Selection of best model fit for loading
+    r_squared_sum = r_squared.sum(axis=0)
+    r_squared_sum = r_squared_sum.sort_values(ascending=False)
+    best_model_fit = r_squared_sum.index[0]
+
+    r_squared_flux_sum = r_squared_flux.sum(axis=0)
+    r_squared_flux_sum = r_squared_flux_sum.sort_values(ascending=False)
+    best_model_fit_flux = r_squared_flux_sum.index[0]
+    best_text = "\nBest model fit for loading\n"
+    best_text += "Rsquared Sum\n"
+    best_text += str(r_squared_sum)
+    best_text += "\nRsquared Sum Best model fit\n"
+    best_text += "\n"+str(best_model_fit)
+
+    best_text += "\nRsquared Sum Flux\n"
+    best_text += '\n\n '+str(r_squared_flux_sum)
+    best_text += "\nbest model fit flux\n"
+    best_text += '\n\n '+str(best_model_fit_flux)
+    # print('best_details ')
+    # print('r_squared_sum',r_squared_sum)
+    # print('best_model_fit', best_model_fit[0])
+    # print('r_squared_flux_sum', r_squared_flux_sum)
+    # print("best_model_fit_flux", best_model_fit_flux[0])
+
     data.enable_last_batch_of_images()
     print('enabled')
     data.update_stat_items("Models fitted.\nPlease click in the model view section.\nReport Generation Enabled.")
     data.set_statistical_model_values(model_value_statistics)
-    data.update_stat_textarea_items(model_value_statistics)
+    data.update_stat_textarea_items(best_text, model_value_statistics)
     data.enable_report_generation()
     # print(model_value_statistics)
     # print("max: ",max_model_name, max_model_name)

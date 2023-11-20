@@ -1,6 +1,3 @@
-from rightcolumn.display_plot_images import display_plots
-
-
 class Data:
     def __init__(self,main_frame):
         self.results_lists = []
@@ -139,9 +136,9 @@ class Data:
         self.stats_item.delete("1.0", "end")  # Clear the existing text
         self.stats_item.insert("1.0", new_text)  # Insert the new text
 
-    def update_stat_textarea_items(self, model_dictionary):
-        new_text = ""
-        print(model_dictionary[0])
+    def update_stat_textarea_items(self, best_model_text, model_dictionary):
+        new_text = best_model_text
+        # print(model_dictionary[0])
         for item in model_dictionary:
             new_text += "\n"+item['model_name']
             new_text += "\n"+str(item['model_value'])+"\n"

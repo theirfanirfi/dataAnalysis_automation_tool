@@ -19,7 +19,7 @@ def calculate():
 
 # Create the main application window
 app = tk.Tk()
-app.title("Left-Aligned Split Frame Example")
+app.title("Data Analysis Tool")
 
 # Create the main frame
 main_frame = tk.Frame(app, bg="white")  # Set the background color to white

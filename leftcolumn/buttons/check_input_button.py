@@ -27,7 +27,7 @@ def checkInputData(data):
     text_stats += "\nMembrane area: " + str(membrane_area)
     
     print(smoothing_factor, membrane_area)
-    # return 
+    # return
 
     # calculation of flux and inclusion into results_list
     # initialize count for next loop
@@ -37,23 +37,22 @@ def checkInputData(data):
             print('Please reduce smoothing factor. Data points not sufficient.')
             text_stats += "Please reduce smoothing factor. Data points not sufficient."
             
-    vol = results['vol (mL)']
-    time = results['time (min)']
-    flux = (vol.shift(-smoothing_factor) - vol) / (time.shift(-smoothing_factor) - time)
-    flux = flux.rolling(window=smoothing_factor).mean()
-    flux = flux.fillna(method='bfill')
-    flux = flux.fillna(method='ffill')
-    
-    results_list[count_2]['flux (LMH)'] = flux * 60 / 1000 / membrane_area
-    results_list[count_2]['flux (LMM)'] = flux / 1000 / membrane_area
-    results_list[count_2]['flux (LMS)'] = flux /  60 /1000 / membrane_area
-    results_list[count_2]['flux J/J0 (-)'] = results_list[count_2]['flux (LMH)'] / results_list[count_2]['flux (LMH)'].iloc[0]
-    count_2 += 1 
+        vol = results['vol (mL)']
+        time = results['time (min)']
+        flux = (vol.shift(-smoothing_factor) - vol) / (time.shift(-smoothing_factor) - time)
+        flux = flux.rolling(window=smoothing_factor).mean()
+        flux = flux.fillna(method='bfill')
+        flux = flux.fillna(method='ffill')
+
+        results_list[count_2]['flux (LMH)'] = flux * 60 / 1000 / membrane_area
+        results_list[count_2]['flux (LMM)'] = flux / 1000 / membrane_area
+        results_list[count_2]['flux (LMS)'] = flux /  60 /1000 / membrane_area
+        results_list[count_2]['flux J/J0 (-)'] = results_list[count_2]['flux (LMH)'] / results_list[count_2]['flux (LMH)'].iloc[0]
+        count_2 += 1
 
     # print(results_list)
     #drop out rows where flux is NaN
     for i, results in enumerate(results_list):
-        # print('i',results[np.isnan(results['flux (LMH)'])==False])
         results = results[np.isnan(results['flux (LMH)']) == False]
         results['vol (L)'] = results['vol (mL)']/1000
         results_list[i] = results
