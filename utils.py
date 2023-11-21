@@ -119,6 +119,14 @@ class Data:
         return self.membrane_area
 
     def initiate_analysis_number(self):
+        try:
+            file = open("last_analysis.txt", "r")
+            file.close()
+        except FileNotFoundError:
+            file = open("last_analysis.txt", "w")
+            file.write(str(0))
+            file.close()
+
         file = open("last_analysis.txt", "r")
         last_project_number = file.readline()
         last_project_number = int(last_project_number.strip())
